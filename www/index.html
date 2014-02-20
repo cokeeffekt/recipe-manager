@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html ng-app="cookBook">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.1.1/css/foundation.min.css">
+        <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/foundicons/3.0.0/foundation-icons.css">
+        <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.13/angular.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.13/angular-route.js"></script>
+        <script type="text/javascript">
+
+
+        var cookBook = angular.module('cookBook', ['ngRoute']).config(function($routeProvider) {
+        	$routeProvider.when('/new', {
+        		templateUrl: 'mod.html',
+        		controller: 'recipeNew'
+        	});
+
+        	$routeProvider.when('/modify/:index', {
+        		templateUrl: 'mod.html',
+        		controller: 'recipeModify'
+        	});
+
+        	//$routeProvider.otherwise({ redirectTo : '/new'});
+        });
+
+        var blankRecipe = {
+        		title: '',
+	        	time: '',
+	        	preperation: '',
+	        	preperation: '',
+        		ingredients: ['']
+        	};
+
+        cookBook.controller('recipeList', function($scope) {
+        	$scope.list = [
+	        	{
+	        		title: 'Chocolate Cake',
+		        	time: 60,
+		        	preperation: 'Add Chocolate to Cake, cook for 60 mins at 180 degrees',
+		        	ingredients: ['Chocolate', 'Cake']
+		        },
+	        	{
+	        		title: 'Sprinkle Cookies',
+		        	time: 60,
+		        	preperation: 'Add Chocolate to Cake, cook for 60 mins at 180 degrees',
+		        	preperation: 'Some Text',
+		        	ingredients: ['Sprinkle', 'Cookie']
+		        },
+		        {
+	        		title: 'Snarsberry Slice',
+		        	time: 60,
+		        	preperation: 'Add Chocolate to Cake, cook for 60 mins at 180 degrees',
+		        	ingredients: ['Snarsberry', 'Slice']
+		        }
+        	];
+
+        	$scope.$on('appendRecipe', function(event, recipe) {
+        		console.log(recipe);
+        		for(i in recipe.ingredients){
+        			if(recipe.ingredients[i] == '') {
+        				recipe.ingredients.splice(i, 1);
+        			}
+        		}
+        		console.log(recipe);
+        		$scope.list.push(recipe);
+        	});
+
+        	$scope.$on('updateRecipe', function(event, recipe) {
+        		console.log(recipe);
+        		for(i in recipe.recipe.ingredients){
+        			console.log(recipe.recipe.ingredients[i]);
+        			if(recipe.recipe.ingredients[i] == '') {
+        				recipe.recipe.ingredients.splice(i, 1);
+        				
+        			}
+        		}
+        		console.log(recipe);
+        		$scope.list[recipe.index] = recipe.recipe;
+        	});
+
+        	window.globalRecipes = $scope.list;
+
+        });
+
+        cookBook.controller('recipeNew', function($scope, $rootScope) {
+        	$scope.saveType = 'New';
+        	$scope.recipe = jQuery.extend({}, blankRecipe);
+
+        	$scope.addIngredientLine = function() {
+        		$scope.recipe.ingredients.push('');
+        	};
+
+        	$scope.saveRecipe = function() {
+        		$rootScope.$broadcast('appendRecipe', jQuery.extend({}, $scope.recipe));
+        		$scope.recipe = jQuery.extend({}, blankRecipe);
+        	};
+        });
+
+
+        cookBook.controller('recipeModify', function($scope, $rootScope, $routeParams) {
+        	$scope.saveType = 'Modify';
+        	$scope.recipe = jQuery.extend({}, globalRecipes[$routeParams.index]);
+
+        	$scope.addIngredientLine = function() {
+        		$scope.recipe.ingredients.push('');
+        	};
+
+        	$scope.saveRecipe = function() {
+        		$rootScope.$broadcast('updateRecipe', {index: $routeParams.index, recipe: jQuery.extend({}, $scope.recipe )});
+        		$scope.recipe = globalRecipes[$routeParams.index];
+        	};
+        	
+        });
+
+        cookBook.factory('sharedRecipes', function($rootScope) {
+        	var recipeList;
+        	return {
+
+        	}
+        });
+
+
+        </script>
+        <title>Recipe Manager</title>
+    </head>
+    <body>
+    	    <!-- Navigation -->
+ 
+  <nav class="top-bar" data-topbar>
+    <ul class="title-area">
+      <!-- Title Area -->
+      <li class="name">
+        <h1>
+          <a href="#">
+            Tutorials on making things that are orally consumable
+          </a>
+        </h1>
+      </li>
+      <li class="toggle-topbar menu-icon"><a href="#"><span>menu</span></a></li>
+    </ul>
+  </nav>
+ 
+  <!-- End Top Bar -->
+ 
+  <div class="row">
+    <div class="large-12 columns">
+ 
+    <!-- Mobile Header -->
+ 
+      <div class="row">
+        <div class="large-12 columns show-for-small">
+ 
+          <img src="http://placehold.it/1200x700&text=Mobile Header">
+ 
+        </div>
+      </div><br>
+ 
+    <!-- End Mobile Header -->
+ 
+ 
+      <div class="row">
+        <div class="large-12 columns">
+          <div class="row">
+            <!-- Shows -->
+            <div class="large-4 columns" ng-controller="recipeList">
+ 
+              <h4>Recipes</h4><hr>
+ 				
+ 			<div ng-repeat="recipe in list track by $index">
+              <div class="row">
+              <span class="label radius right">{{recipe.ingredients.length}}</span>
+                <div class="large-9 columns">
+                  <h5><a href="#/modify/{{$index}}">{{recipe.title}}</a></h5>
+                  <h6 class="subheader">Preperation Time {{recipe.time}}mins</h6>
+                </div>
+              </div><hr>
+            </div>
+            <a href="#/new" class="button expand"><i class="fi-plus"></i> New</a>
+			
+            </div>
+
+            <div class="large-8 columns" id="view" ng-view></div>
+ 
+          </div>
+        </div>
+      </div>
+
+ 
+      <footer class="row">
+        <div class="large-12 columns"><hr>
+            <div class="row">
+ 
+              <div class="large-6 columns">
+                  <p>© Copyright no one at all. Go to town.</p>
+              </div>
+ 
+              <div class="large-6 small-12 columns">
+                  <ul class="inline-list right">
+                    <li><a href="#">Link 1</a></li>
+                    <li><a href="#">Link 2</a></li>
+                    <li><a href="#">Link 3</a></li>
+                    <li><a href="#">Link 4</a></li>
+                  </ul>
+              </div>
+ 
+            </div>
+        </div>
+      </footer>
+ 
+    <!-- End Footer -->
+ 
+    </div>
+  </div>
+
+<!-- End Footer -->
+   
+    </body>
+</html>
